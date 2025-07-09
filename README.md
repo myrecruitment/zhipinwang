@@ -333,19 +333,6 @@
             animation: slideUp 0.5s 0.6s both;
         }
         
-        .consultation-counter {
-            position: absolute;
-            top: -10px;
-            right: 20px;
-            background: #e53e3e;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: bold;
-            animation: pulse 1.5s infinite;
-        }
-        
         .multiple-cta {
             display: flex;
             gap: 10px;
@@ -498,7 +485,6 @@
 
         <!-- 主CTA按钮 -->
         <div class="cta-section">
-            <div class="consultation-counter" id="consultationCounter">+1 咨询</div>
             <button class="cta-button whatsapp-btn" data-source="main-cta">
                 💬 立即开始咨询
             </button>
@@ -587,11 +573,6 @@
         const PHONE_NUMBER = '+60198793452';
         const WHATSAPP_PROTOCOL_LINK = `whatsapp://send?phone=${PHONE_NUMBER}`;
         
-        // 状态管理 - 允许多次转化
-        let clickCount = 0;
-        let consultationCount = 0;
-        let pageStartTime = Date.now();
-        
         // 检测微信环境
         function isWeChatBrowser() {
             return /MicroMessenger/i.test(navigator.userAgent);
@@ -644,53 +625,19 @@
         setInterval(updateLiveCounter, 10000);
         setInterval(updateApplicantCount, 15000);
         
-        // 简化追踪函数 - 立即触发Contact事件
+        // 简化追踪函数 - 只保留Contact事件
         function trackConsultationClick(buttonSource) {
-            console.log('🎯 立即追踪咨询点击 - 来源:', buttonSource);
-            clickCount++;
-            consultationCount++;
-            
-            // 更新咨询计数器
-            const counter = document.getElementById('consultationCounter');
-            if (counter) {
-                counter.textContent = `+${consultationCount} 咨询`;
-                counter.style.display = 'block';
-                
-                // 3秒后隐藏
-                setTimeout(() => {
-                    counter.style.display = 'none';
-                }, 3000);
-            }
-            
-            if (typeof fbq === 'undefined') {
-                console.error('❌ Facebook Pixel 未加载');
-                return;
-            }
+            if (typeof fbq === 'undefined') return;
             
             try {
-                // 立即发送Contact事件（门槛更低）
                 fbq('track', 'Contact', {
                     content_name: 'WhatsApp点击',
                     content_category: '用户联系',
                     value: 8.00,
                     currency: 'USD'
                 });
-                
-                console.log('✅ Contact事件已发送 - 第', clickCount, '次');
-                
-                // 每3次点击发送一次ViewContent（增加互动数据）
-                if (clickCount % 3 === 0) {
-                    fbq('track', 'ViewContent', {
-                        content_name: '多次咨询互动',
-                        content_category: '高频用户',
-                        value: 5.00,
-                        currency: 'USD'
-                    });
-                    console.log('✅ 高频互动ViewContent事件已发送');
-                }
-                
             } catch (error) {
-                console.error('❌ 追踪事件失败:', error);
+                console.error('追踪事件失败:', error);
             }
         }
         
@@ -721,8 +668,6 @@
             const button = event.currentTarget;
             const buttonSource = button.getAttribute('data-source') || 'unknown';
             
-            console.log('👆 用户点击咨询按钮 - 来源:', buttonSource, '第', clickCount + 1, '次');
-            
             // 立即追踪
             trackConsultationClick(buttonSource);
             
@@ -749,7 +694,6 @@
                 }, 100);
                 
             } catch (error) {
-                console.log('❌ 跳转失败:', error);
                 // 策略3: 显示备用链接
                 showFallbackOption();
             }
@@ -763,9 +707,6 @@
         
         // 页面加载完成
         window.addEventListener('load', function() {
-            console.log('📱 大量咨询优化页面加载完成');
-            pageStartTime = Date.now();
-            
             // 绑定所有咨询按钮
             document.querySelectorAll('.whatsapp-btn').forEach(button => {
                 button.addEventListener('click', contactWhatsApp);
@@ -778,19 +719,6 @@
             // 快速更新计数器
             updateLiveCounter();
             updateApplicantCount();
-            
-            // 每10秒发送一次ViewContent（增加页面互动数据）
-            setInterval(() => {
-                if (typeof fbq !== 'undefined') {
-                    fbq('track', 'ViewContent', {
-                        content_name: '页面活跃用户',
-                        content_category: '持续互动',
-                        value: 2.00,
-                        currency: 'USD'
-                    });
-                    console.log('✅ 持续互动ViewContent事件已发送');
-                }
-            }, 10000);
         });
     </script>
 </body>
